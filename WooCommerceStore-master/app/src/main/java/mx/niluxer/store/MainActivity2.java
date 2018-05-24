@@ -2,6 +2,7 @@ package mx.niluxer.store;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -9,8 +10,11 @@ import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.net.InetAddress;
@@ -18,7 +22,7 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 
-import mx.niluxer.store.adapters.InfoAdapter;
+import mx.niluxer.store.adapters.OrdersAdapter;
 import mx.niluxer.store.data.model.Orders;
 import mx.niluxer.store.data.model.Orders;
 import mx.niluxer.store.data.remote.ApiUtils;
@@ -30,22 +34,23 @@ import retrofit2.Response;
 
 public class MainActivity2 extends AppCompatActivity {
 
-    private RecyclerView rvCustomers;
+    private RecyclerView rvOrders;
     private WooCommerceService mService;
-    private InfoAdapter iAdapter;
+    private OrdersAdapter mAdapter;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.info_item);
+        setContentView(R.layout.activity_main);
 
         mService = ApiUtils.getWooCommerceService();
-        rvCustomers = (RecyclerView) findViewById(R.id.rvCustomers);
-        iAdapter = new InfoAdapter(this, new ArrayList<Orders>(0), new InfoAdapter.OrdersItemListener() {
+        rvOrders = (RecyclerView) findViewById(R.id.rvCustomers);
+        mAdapter = new OrdersAdapter(this, new ArrayList<Orders>(0), new OrdersAdapter.OrdersItemListener() {
 
             @Override
             public void onOrdersClick(long id) {
-                Toast.makeText(MainActivity2.this, "Orders id is " + id, Toast.LENGTH_SHORT).show();
+//                Toast.makeText(MainActivity2.this, "Orders id is " + id, Toast.LENGTH_SHORT).show();
             }
 
             @Override
@@ -55,23 +60,28 @@ public class MainActivity2 extends AppCompatActivity {
         });
 
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
-        rvCustomers.setLayoutManager(layoutManager);
-        rvCustomers.setAdapter(iAdapter);
-        rvCustomers.setHasFixedSize(true);
+        rvOrders.setLayoutManager(layoutManager);
+        rvOrders.setAdapter(mAdapter);
+        rvOrders.setHasFixedSize(true);
         RecyclerView.ItemDecoration itemDecoration = new DividerItemDecoration(this, DividerItemDecoration.VERTICAL);
-        rvCustomers.addItemDecoration(itemDecoration);
+        rvOrders.addItemDecoration(itemDecoration);
 
-        loadOrders();
+        int customer_id = getIntent().getExtras().getInt("id");
+        System.out.println("Customer id 1: " + customer_id);
+
+        loadOrders(customer_id);
 
     }
 
-    public void loadOrders() {
-        mService.getOrders().enqueue(new Callback<List<Orders>>() {
+    public void loadOrders(int customer_id) {
+        System.out.println("Customer id 2: " + customer_id);
+        mService.getOrders(customer_id).enqueue(new Callback<List<Orders>>() {
             @Override
             public void onResponse(Call<List<Orders>> call, Response<List<Orders>> response) {
 
                 if(response.isSuccessful()) {
-                    iAdapter.updateOrders(response.body());
+                    mAdapter.updateOrders(response.body());
+                    System.out.println(response.body().toString());
                     Log.d("MainActivity2", "Orders loaded from API");
                 }else {
                     int statusCode  = response.code();
@@ -88,23 +98,6 @@ public class MainActivity2 extends AppCompatActivity {
         });
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId())
-        {
-
-            case R.id.mnuExit:
-                confirmExit();
-                break;
-        }
-        return super.onOptionsItemSelected(item);
-    }
 
     private void showContextualMenu(final Orders Orders)
     {
@@ -112,7 +105,7 @@ public class MainActivity2 extends AppCompatActivity {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
-        builder.setTitle("Action:");
+        builder.setTitle("Menu:");
         builder.setItems(items, new DialogInterface.OnClickListener() {
 
             public void onClick(DialogInterface dialog, int item) {
@@ -120,7 +113,7 @@ public class MainActivity2 extends AppCompatActivity {
                 {
                     case 0:
                         //Toast.makeText(MainActivity.this, Orders.getName(), Toast.LENGTH_SHORT).show();
-                        NewEditOrdersDialog newEditOrdersDialog = new NewEditOrdersDialog(MainActivity2.this);
+                        MainActivity2.NewEditOrdersDialog newEditOrdersDialog = new MainActivity2.NewEditOrdersDialog(MainActivity2.this);
                         newEditOrdersDialog.setEditMode(true);
                         newEditOrdersDialog.setOrders(Orders);
                         newEditOrdersDialog.show();
@@ -149,6 +142,12 @@ public class MainActivity2 extends AppCompatActivity {
                                 System.out.println("Error deleting Orders...");
                             }
                         });*/
+//                        Intent i=new Intent (MainActivity.this,MainActivity2.class);
+                        //int id=Orders.getId();
+                        //i.putExtra("idOrders",id);
+
+  //                      startActivity(i);
+
                         break;
                 }
 
@@ -160,6 +159,19 @@ public class MainActivity2 extends AppCompatActivity {
 
         alert.show();
     }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId())
+        {
+
+            case R.id.mnuExit:
+                confirmExit();
+                break;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
 
     private void runThread()
     {
@@ -228,40 +240,48 @@ public class MainActivity2 extends AppCompatActivity {
         protected void onCreate(Bundle savedInstanceState) {
 
 
-           /* String title = "New Orders";
-            if(editMode) title = "Edit Orders";
+/*
+
+            String title = "Informacion de los Clientes";
+           // if(editMode) title = "Edit Orders";
             setTitle(title);
-            setMessage("Orders Details");
-            View view = LayoutInflater.from(context).inflate(R.layout.new_edit_Orders, null);
+            setMessage("Informacion de los CLientes");
+            View view = LayoutInflater.from(context).inflate(R.layout.info_item, null);
             setView(view);
+            final TextView tvOrdersName, tvOrdersEmail,tvOrdersAddress,tvOrdersCompras,tvOrdersFechaCreacion,tvOrdersRol,tvOrdersUserName,tvOrdersTotalGastado,tvOrdersDireccionFacturacion,tvOrdersDireccionEnvio;
+            tvOrdersName  = (TextView) view.findViewById(R.id.tvOrdersName);
+            tvOrdersEmail = (TextView) view.findViewById(R.id.tvOrdersEmail);
+            tvOrdersAddress = (TextView) view.findViewById(R.id.tvOrdersAddress);
+            tvOrdersCompras = (TextView) view.findViewById(R.id.tvOrdersCompras);
+            tvOrdersFechaCreacion = (TextView) view.findViewById(R.id.tvOrdersFechaCreacion);
+            tvOrdersRol = (TextView) view.findViewById(R.id.tvOrdersRol);
+            tvOrdersUserName = (TextView) view.findViewById(R.id.tvOrdersUserName);
+            tvOrdersTotalGastado = (TextView) view.findViewById(R.id.tvOrdersTotalGastado);
+            tvOrdersDireccionFacturacion = (TextView) view.findViewById(R.id.tvOrdersDireccionFacturacion);
+            tvOrdersDireccionEnvio = (TextView) view.findViewById(R.id.tvOrdersDireccionEnvio);
 
-            final EditText txtOrdersName = view.findViewById(R.id.txtOrdersName);
-            final EditText txtOrdersType = view.findViewById(R.id.txtOrdersType);
-            final EditText txtOrdersCategory = view.findViewById(R.id.txtOrdersCategory);
-            final EditText txtOrdersRegularPrice = view.findViewById(R.id.txtOrdersRegularPrice);
-            final EditText txtOrdersDescription = view.findViewById(R.id.txtOrdersDescription);*/
+            tvOrdersName.setText(Orders.getFirstName());
+            tvOrdersEmail.setText(Orders.getEmail());
+            tvOrdersAddress.setText("Address");
+            tvOrdersCompras.setText(Orders.getOrdersCount().toString());
+            tvOrdersFechaCreacion.setText(Orders.getDateCreated());
+            tvOrdersRol.setText(Orders.getRole());
+            tvOrdersUserName.setText(Orders.getUsername());
+            tvOrdersTotalGastado.setText(Orders.getTotalSpent());
+            tvOrdersDireccionFacturacion.setText(Orders.getBilling().getAddress1());
+            tvOrdersDireccionEnvio.setText(Orders.getShipping().getAddress1());
 
-            /*String btnText = "Send";
-            if(editMode)
-            {
-                btnText = "Save";
-                txtOrdersName.setText(Orders.getName());
-                txtOrdersType.setText(Orders.getType());
-                Category category = Orders.getCategories().get(0);
-                txtOrdersCategory.setText(category.getId()+"");
-                txtOrdersRegularPrice.setText(Orders.getRegularPrice());
-                txtOrdersDescription.setText(Orders.getDescription());
-            }*/
+*/
 
 
 
-
-            setButton(DialogInterface.BUTTON_NEGATIVE, "Cancel", new OnClickListener() {
+            /*setButton(DialogInterface.BUTTON_NEGATIVE, "Cancel", new OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
-                    dismiss();
+                   // Intent siguiente=new Intent(MainActivity.this,MainActivity2.class);
+                    //startActivity(siguiente);
                 }
-            });
+            });*/
 
             super.onCreate(savedInstanceState);
 

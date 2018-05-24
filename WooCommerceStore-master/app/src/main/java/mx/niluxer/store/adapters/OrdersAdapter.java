@@ -13,7 +13,7 @@ import java.util.List;
 import mx.niluxer.store.R;
 import mx.niluxer.store.data.model.Orders;
 
-public class InfoAdapter extends RecyclerView.Adapter<InfoAdapter.ViewHolder> {
+public class OrdersAdapter extends RecyclerView.Adapter<OrdersAdapter.ViewHolder> {
 
     private List<Orders> mItems;
     private Context mContext;
@@ -55,26 +55,26 @@ public class InfoAdapter extends RecyclerView.Adapter<InfoAdapter.ViewHolder> {
         }
     }
 
-    public InfoAdapter(Context context, List<Orders> posts, OrdersItemListener itemListener) {
+    public OrdersAdapter(Context context, List<Orders> posts, OrdersItemListener itemListener) {
         mItems = posts;
         mContext = context;
         mItemListener = itemListener;
     }
 
     @Override
-    public InfoAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public OrdersAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
 
         Context context = parent.getContext();
         LayoutInflater inflater = LayoutInflater.from(context);
 
-        View OrdersView = inflater.inflate(R.layout.info_item, parent, false);
+        View OrdersView = inflater.inflate(R.layout.orders_item, parent, false);
 
         ViewHolder viewHolder = new ViewHolder(OrdersView, this.mItemListener);
         return viewHolder;
     }
 
     @Override
-    public void onBindViewHolder(InfoAdapter.ViewHolder holder, int position) {
+    public void onBindViewHolder(OrdersAdapter.ViewHolder holder, int position) {
 
         Orders item = mItems.get(position);
         TextView textView1 = holder.tvOrdersMetodoPago;
@@ -84,12 +84,13 @@ public class InfoAdapter extends RecyclerView.Adapter<InfoAdapter.ViewHolder> {
         textView1.setText(item.getPaymentMethod());
         textView2.setText(item.getDatePaid());
         textView3.setText(item.getTotal());
+        //System.out.println(item.getCustomerId() + item.getCurrency());
 
 
         //Picasso.get().load(item.getImages().get(0).getSrc().replace("https", "http")).transform(new CropCircleTransformation()).resize(150, 150).into(imageView);
 
 
-        /*OkHttpClient okHttpClient = UnsafeOkHttpClient.getUnsafeOkHttpClient();
+        /*OkHttpClient okHttpClient = UnsafeOkHttpClient.getUnsafeOkHttpClient();1
         Picasso picasso = new Picasso.Builder(mContext)
                 .downloader(new OkHttp3Downloader(okHttpClient))
                 .build();

@@ -164,8 +164,8 @@ public class MainActivity extends AppCompatActivity {
                             }
                         });*/
                        Intent i=new Intent (MainActivity.this,MainActivity2.class);
-                       //int id=Customers.getId();
-                       //i.putExtra("idCustomers",id);
+                       int id=Customers.getId();
+                       i.putExtra("id",id);
 
                        startActivity(i);
 

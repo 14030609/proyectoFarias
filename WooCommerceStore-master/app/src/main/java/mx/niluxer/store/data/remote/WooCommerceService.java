@@ -23,11 +23,11 @@ public interface WooCommerceService {
     Call<Customers> getCustomers(@Query("id") int id);
 
 
-    @GET("orders?per_page=100")
-    Call<List<Orders>> getOrders();
+    @GET("orders?")
+    Call<List<Orders>> getOrders(@Query("customer") int id);
 
-    @GET("orders?costumers=")
-    Call<Orders> getOrders(@Query("id") int id);
+    //@GET("orders?customers=2")
+    //Call<Orders> getOrders(@Query("id") int id);paymentMethod
 
 
 
